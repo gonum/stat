@@ -1146,6 +1146,39 @@ func TestQuantile(t *testing.T) {
 	}
 }
 
+func TestRSquared(t *testing.T) {
+	for _, test := range []struct {
+		x []float64
+		y []float64
+		w []float64
+	}{
+		{
+			x: []float64{3, 5, 9},
+			y: []float64{5, 7, 8, 8, 9},
+			w: nil,
+		},
+		{
+			x: []float64{3, 5, 9, 8, 9},
+			y: []float64{5, 7, 8},
+			w: nil,
+		},
+		{
+			x: []float64{3, 5, 9, 8, 9},
+			y: []float64{5, 7, 8, 8, 9},
+			w: []float64{},
+		},
+		{
+			x: []float64{3, 5, 9, 8, 9},
+			y: []float64{5, 7, 8, 8, 9},
+			w: []float64{1, 4, 8},
+		},
+	} {
+		if !Panics(func() { RSquared(test.x, test.y, test.w) }) {
+			t.Errorf("Case %v: RSquared did not panic.")
+		}
+	}
+}
+
 func ExampleStdDev() {
 	x := []float64{8, 2, -9, 15, 4}
 	stdev := StdDev(x, nil)

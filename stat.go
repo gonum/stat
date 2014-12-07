@@ -804,6 +804,41 @@ func Quantile(p float64, c CumulantKind, x, weights []float64) float64 {
 	}
 }
 
+// RSquared computes the coefficient of determination (R^2), a measure of how
+// well the predictions y match the true data x. Please use caution when interpreting
+// the value of R2 when y is not predicted from a linear fit to x. The formula is:
+//  res = \sum_i w_i (y_i - x_i)^2
+//  ssq = \sum_i w_i (x_i - mean(x))^2
+//  R^2 = 1 - res / ssq
+func RSquared(x, y, weights []float64) float64 {
+	if len(x) != len(y) {
+		panic("stat: slice length mismatch")
+	}
+	if weights != nil && len(x) != len(weights) {
+		panic("stat: slice length mismatch")
+	}
+	var (
+		residual float64
+		sumsq    float64
+	)
+	mean := Mean(x, weights)
+	if weights == nil {
+		for i, yi := range y {
+			xi := x[i]
+			residual += (xi - yi) * (xi - yi)
+			sumsq += (xi - mean) * (xi - mean)
+		}
+	} else {
+		for i, w := range weights {
+			xi := x[i]
+			yi := y[i]
+			residual += w * (xi - yi) * (xi - yi)
+			sumsq += w * (xi - mean) * (xi - mean)
+		}
+	}
+	return 1 - residual/sumsq
+}
+
 // Skew computes the skewness of the sample data.
 // If weights is nil then all of the weights are 1. If weights is not nil, then
 // len(x) must equal len(weights).
