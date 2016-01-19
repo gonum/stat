@@ -2,8 +2,12 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// package sample contains a set of advanced routines for sampling from
+// package sample implements advanced sampling routines from explicit and implicit
 // probability distributions.
+//
+// The sampling routines are implemented as types that satisfy the BatchSampler
+// interface. Each type has a "Func" method where the behavior is implemented
+// as a (stateless) function.
 package sample
 
 import (
@@ -17,6 +21,21 @@ var (
 	badLengthMismatch = "sample: slice length mismatch"
 )
 
+// BatchSampler generates a set of samples according to the rule specified by the
+// implementing type.
+type BatchSampler interface {
+	BatchSample(x []float64)
+}
+
+type LatinHypercube struct {
+	Q   dist.Quantiler
+	Src *rand.Rand
+}
+
+func (l LatinHypercube) BatchSample(samples []float64) {
+	return l.Func(x, l.Q, l.Src)
+}
+
 // LatinHypercube generates len(samples) samples using Latin hypercube sampling
 // from the given distribution. If src != nil, it will be used to generate
 // random numbers, otherwise rand.Float64 will be used.
@@ -25,7 +44,7 @@ var (
 // spaced bins and guarantees that one sample is generated per bin. Within each bin,
 // the location is randomly sampled. The dist.UnitNormal variable can be used
 // for easy generation from the unit interval.
-func LatinHypercube(samples []float64, q dist.Quantiler, src *rand.Rand) {
+func (LatinHypercube) Func(samples []float64, q dist.Quantiler, src *rand.Rand) {
 	n := len(samples)
 	var perm []int
 	var f64 func() float64
