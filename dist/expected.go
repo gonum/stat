@@ -44,6 +44,8 @@ func ExpectedFixed(f func(float64) float64, q Quantiler, evals, concurrent int) 
 	// TODO(btracey): Use a type switch on the quantiler when quad supports
 	// more quadrature classes. For example, use Gaussian-Hermite quadrature
 	// for the normal distribution.
+	// TODO(btracey): Add a test for a categorical distribution when one that
+	// is a Quantiler exists.
 	g := func(p float64) float64 {
 		x := q.Quantile(p)
 		return f(x)
