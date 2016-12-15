@@ -71,8 +71,8 @@ func NewWishart(v mat64.Symmetric, nu float64, src *rand.Rand) (*Wishart, bool) 
 
 // MeanSym returns the mean matrix of the distribution as a symmetric matrix.
 // If x is nil, a new matrix is allocated and returned. If x is not nil, the
-// result is stored in-place into x. Its order must be equal to that of the
-// receiver or MeanSym will panic.
+// result is stored in-place into x and MeanSym will panic if the order of x
+// is not equal to the order of the receiver.
 func (w *Wishart) MeanSym(x *mat64.SymDense) *mat64.SymDense {
 	if x == nil {
 		x = mat64.NewSymDense(w.dim, nil)
