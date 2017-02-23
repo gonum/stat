@@ -217,14 +217,10 @@ func (n *Normal) MarginalNormal(vars []int, src *rand.Rand) (*Normal, bool) {
 // The input src is passed to the constructed distuv.Normal.
 func (n *Normal) MarginalNormalSingle(i int, src *rand.Rand) distuv.Normal {
 	var std float64
-	if n.sigma != nil {
-		std = n.sigma.At(i, i)
-	} else {
-		// Reconstruct the {i,i} diagonal element of the covariance directly.
-		for j := 0; j <= i; j++ {
-			v := n.lower.At(i, j)
-			std += v * v
-		}
+	// Construct the {i,i} diagonal element of the covariance directly.
+	for j := 0; j <= i; j++ {
+		v := n.lower.At(i, j)
+		std += v * v
 	}
 	return distuv.Normal{
 		Mu:     n.mu[i],

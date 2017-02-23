@@ -301,14 +301,10 @@ func (s *StudentsT) MarginalStudentsT(vars []int, src *rand.Rand) (dist *Student
 // The input src is passed to the call to NewStudentsT.
 func (s *StudentsT) MarginalStudentsTSingle(i int, src *rand.Rand) distuv.StudentsT {
 	var std float64
-	if s.sigma != nil {
-		std = s.sigma.At(i, i)
-	} else {
-		// Reconstruct the {i,i} diagonal element of the covariance directly.
-		for j := 0; j <= i; j++ {
-			v := s.lower.At(i, j)
-			std += v * v
-		}
+	// Construct the {i,i} diagonal element of the covariance directly.
+	for j := 0; j <= i; j++ {
+		v := s.lower.At(i, j)
+		std += v * v
 	}
 
 	return distuv.StudentsT{
