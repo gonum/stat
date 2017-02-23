@@ -503,7 +503,7 @@ func TestMarginalSingle(t *testing.T) {
 		}
 
 		// Verify with non-nil Sigma.
-		normal.setSigma()
+		normal.SetSigma()
 		for i, mean := range test.mu {
 			norm := normal.MarginalNormalSingle(i, nil)
 			if norm.Mean() != mean {

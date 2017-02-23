@@ -8,7 +8,6 @@ import (
 	"math"
 	"math/rand"
 	"sort"
-	"sync"
 
 	"golang.org/x/tools/container/intsets"
 
@@ -36,7 +35,6 @@ type StudentsT struct {
 	mu  []float64
 	src *rand.Rand
 
-	once  sync.Once
 	sigma *mat64.SymDense // only stored if needed
 
 	chol       mat64.Cholesky
@@ -101,7 +99,7 @@ func (s *StudentsT) ConditionStudentsT(observed []int, values []float64, src *ra
 		}
 	}
 
-	s.setSigma()
+	s.SetSigma()
 
 	newNu, newMean, newSigma := studentsTConditional(observed, values, s.nu, s.mu, s.sigma)
 	if newMean == nil {
@@ -231,7 +229,7 @@ func (st *StudentsT) CovarianceMatrix(s *mat64.SymDense) *mat64.SymDense {
 	if sn != st.dim {
 		panic("normal: input matrix size mismatch")
 	}
-	st.setSigma()
+	st.SetSigma()
 	s.CopySym(st.sigma)
 	s.ScaleSym(st.nu/(st.nu-2), s)
 	return s
@@ -286,7 +284,7 @@ func (s *StudentsT) MarginalStudentsT(vars []int, src *rand.Rand) (dist *Student
 	for i, v := range vars {
 		newMean[i] = s.mu[v]
 	}
-	s.setSigma()
+	s.SetSigma()
 	var newSigma mat64.SymDense
 	newSigma.SubsetSym(s.sigma, vars)
 	return NewStudentsT(newMean, &newSigma, s.nu, src)
@@ -368,10 +366,12 @@ func (s *StudentsT) Rand(x []float64) []float64 {
 	return x
 }
 
-// setSigma computes and stores the covariance matrix of the distribution.
-func (s *StudentsT) setSigma() {
-	s.once.Do(func() {
+// SetSigma computes and stores the covariance matrix of the distribution.
+// If the StudentsT is to be used concurrently, SetSigma should be called after
+// the value has been created.
+func (s *StudentsT) SetSigma() {
+	if s.sigma == nil {
 		s.sigma = mat64.NewSymDense(s.dim, nil)
 		s.sigma.FromCholesky(&s.chol)
-	})
+	}
 }

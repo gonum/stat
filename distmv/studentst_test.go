@@ -182,8 +182,8 @@ func TestStudentsTConditional(t *testing.T) {
 			muOb[i] = test.mean[v]
 		}
 
-		s.setSigma()
-		sUp.setSigma()
+		s.SetSigma()
+		sUp.SetSigma()
 
 		var sig11, sig22 mat64.SymDense
 		sig11.SubsetSym(s.sigma, unob)
@@ -265,7 +265,7 @@ func TestStudentsTMarginalSingle(t *testing.T) {
 		}
 
 		// Verify with non-nil Sigma.
-		studentst.setSigma()
+		studentst.SetSigma()
 		for i, mean := range test.mu {
 			st := studentst.MarginalStudentsTSingle(i, nil)
 			if st.Mean() != mean {

@@ -7,7 +7,6 @@ package distmv
 import (
 	"math"
 	"math/rand"
-	"sync"
 
 	"github.com/gonum/floats"
 	"github.com/gonum/matrix/mat64"
@@ -27,7 +26,6 @@ var (
 type Normal struct {
 	mu []float64
 
-	once  sync.Once
 	sigma *mat64.SymDense // only stored if needed
 
 	chol       mat64.Cholesky
@@ -141,7 +139,7 @@ func (n *Normal) ConditionNormal(observed []int, values []float64, src *rand.Ran
 		}
 	}
 
-	n.setSigma()
+	n.SetSigma()
 
 	_, mu1, sigma11 := studentsTConditional(observed, values, math.Inf(1), n.mu, n.sigma)
 	if mu1 == nil {
@@ -164,7 +162,7 @@ func (n *Normal) CovarianceMatrix(s *mat64.SymDense) *mat64.SymDense {
 	if sn != n.Dim() {
 		panic("normal: input matrix size mismatch")
 	}
-	n.setSigma()
+	n.SetSigma()
 	s.CopySym(n.sigma)
 	return s
 }
@@ -202,7 +200,7 @@ func (n *Normal) MarginalNormal(vars []int, src *rand.Rand) (*Normal, bool) {
 	for i, v := range vars {
 		newMean[i] = n.mu[v]
 	}
-	n.setSigma()
+	n.SetSigma()
 	var s mat64.SymDense
 	s.SubsetSym(n.sigma, vars)
 	return NewNormal(newMean, &s, src)
@@ -300,12 +298,14 @@ func (n *Normal) SetMean(mu []float64) {
 	copy(n.mu, mu)
 }
 
-// setSigma computes and stores the covariance matrix of the distribution.
-func (n *Normal) setSigma() {
-	n.once.Do(func() {
+// SetSigma computes and stores the covariance matrix of the distribution.
+// If the Normal is to be used concurrently, SetSigma should be called after
+// the value has been created.
+func (n *Normal) SetSigma() {
+	if n.sigma == nil {
 		n.sigma = mat64.NewSymDense(n.Dim(), nil)
 		n.sigma.FromCholesky(&n.chol)
-	})
+	}
 }
 
 // TransformNormal transforms the vector, normal, generated from a standard
